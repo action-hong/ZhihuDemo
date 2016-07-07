@@ -17,9 +17,12 @@ public class NewsBean implements Serializable{
      */
 
     private int id;
+    private boolean loved;
     private String title;
     private String images;
     private String date;
+
+    public NewsBean(){}
 
     public NewsBean(String title, String images, int id) {
         this.title = title;
@@ -57,5 +60,14 @@ public class NewsBean implements Serializable{
 
     public void setImages(String images) {
         this.images = images;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isLoved() {
+        return loved;
+    }
+
+    public void setLoved(boolean loved) {
+        this.loved = loved;
     }
 }

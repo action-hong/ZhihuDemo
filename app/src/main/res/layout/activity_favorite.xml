@@ -8,12 +8,10 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.example.kkopite.zhihudemo.activity.WebActivity">
+    tools:context="com.example.kkopite.zhihudemo.activity.FavoriteActivity">
 
-
-    <WebView
-        android:id="@+id/news_detail"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/news_list"
+        style="@style/commonListViewStyle"/>
 
 </RelativeLayout>

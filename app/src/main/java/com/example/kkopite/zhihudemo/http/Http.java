@@ -19,14 +19,15 @@ public class Http {
     public static final String PASS_DAY_NEWS = "http://news.at.zhihu.com/api/4/news/before/";
 
 
-    public static String get(String address) throws IOException{
-        URL url = new URL(address);
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-        con.setRequestProperty("User-Agent", "Mozilla/5.0");
 
+    public static String get(String address) {
+        URL url;
+        HttpURLConnection con = null;
         try {
-
+            url = new URL(address);
+            con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", "Mozilla/5.0");
             if(con.getResponseCode() == HttpURLConnection.HTTP_OK){
                 BufferedReader bf = new BufferedReader(new InputStreamReader(con.getInputStream()));
                 String line;
@@ -34,22 +35,21 @@ public class Http {
                 while ((line=bf.readLine()) != null) {
                     sb.append(line);
                 }
-
                 bf.close();
-
                 return sb.toString();
-            }else {
-                throw new IOException("Network Error - response code: " + con.getResponseCode());
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }finally {
+            assert con != null;
             con.disconnect();
         }
+        return null;
     }
 
     public static String getDetailNews(int id) throws IOException {
         return get(DETAIL_NEWS+id);
     }
-
 
 
 }

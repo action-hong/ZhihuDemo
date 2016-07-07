@@ -9,7 +9,7 @@ import com.example.kkopite.zhihudemo.model.NewsBean;
 import com.example.kkopite.zhihudemo.task.NewsDetailTask;
 import com.example.kkopite.zhihudemo.utils.Utils;
 
-public class WebActivity extends AppCompatActivity implements NewsDetailTask.OnProgressBar{
+public class WebActivity extends AppCompatActivity{
 
     private WebView webView;
 
@@ -24,8 +24,6 @@ public class WebActivity extends AppCompatActivity implements NewsDetailTask.OnP
         NewsBean news = (NewsBean) getIntent().getSerializableExtra(Utils.NEWS_BEAN);
 
 
-
-
         new NewsDetailTask(webView,this).execute(news.getId());
     }
 
@@ -36,7 +34,4 @@ public class WebActivity extends AppCompatActivity implements NewsDetailTask.OnP
     }
 
 
-    @Override
-    public void doSomething() {
-    }
 }

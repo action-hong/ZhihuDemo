@@ -12,7 +12,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +26,6 @@ public class NewsTask extends AsyncTask<String,Void,List<NewsBean>> {
     private OnSolveResponse onSolveResponse;
 
     public NewsTask(Context context, OnSolveResponse onSolveResponse){
-
         this.db = NewsListDB.getInstance(context);
         this.onSolveResponse = onSolveResponse;
         gson = new Gson();
@@ -38,7 +36,7 @@ public class NewsTask extends AsyncTask<String,Void,List<NewsBean>> {
         try {
             String result = Http.get(strings[0]);
             return parseJsonToList(result);
-        }  catch (IOException | JSONException e) {
+        }  catch (JSONException e) {
             e.printStackTrace();
         }
         return null;

@@ -3,11 +3,9 @@ package com.example.kkopite.zhihudemo.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -36,16 +34,13 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
         super.onCreate(savedInstanceState);
 
-
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.news_list);
         List<NewsBean> newsBeanList = new ArrayList<>();
 
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.news_list);
+
         refreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
-
-
         refreshLayout.setOnRefreshListener(this);
         refreshLayout.setColorSchemeResources(android.R.color.holo_blue_light);
-
 
         //设置recycleView布局
         llm = new LinearLayoutManager(this);
@@ -56,8 +51,6 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         //实例适配器,设置item点击事件
         adapter = new NewsAdapter(newsBeanList,this);
         adapter.setCardClickListener(this);
-
-
         recyclerView.setAdapter(adapter);
 
 
@@ -88,7 +81,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         });
 
 
-        if (isUseLatestLoading()){
+         if (isUseLatestLoading()){
             //请求今天的内容
             new NewsTask(this,this).execute(Http.TODAY_NEWS);
             useLatestLoad = false;
@@ -130,9 +123,10 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             case R.id.clear_db:
                 clearCache();
                 break;
-            case R.id.add_more:
-//                addMoreNews();
             case R.id.action_settings:
+                break;
+            case R.id.user_love:
+                startActivity(new Intent(this,FavoriteActivity.class));
                 break;
         }
 
@@ -146,9 +140,9 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         adapter.clearAll();
         db.deleteAll();
         useLatestLoad = true;//为空,不可以使用上拉加载
+        adapter.setLoadStatus(NewsAdapter.NOT_SHOW);//为空时，不显示上啦刷新
         editor.putBoolean(Utils.IS_FIRST_TIME,true);
         editor.commit();
-        adapter.setLoadStatus(NewsAdapter.NOT_SHOW);//为空时，不显示上啦刷新
     }
 
 
@@ -186,30 +180,33 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         }else {
             String today = Utils.getToday();
             String date = pref.getString(Utils.LATEST_DATE,"20160701");
-            final List<NewsBean> allList = new LinkedList<>();
-            editor.putString(Utils.LATEST_DATE,today);
-            editor.commit();
-            today = Utils.getTomorrow(today);
-            date = Utils.getTomorrow(date);
-            while(!today.equals(date)){
-                //加载到之前的一天
-                final String finalToday = today;
-                final String finalDate = date;
-                new NewsTask(this, new NewsTask.OnSolveResponse() {
-                    @Override
-                    public void solveDate(String date) {
-                        //这里就不做日期处理了，下面自动搞成下一天了
-                    }
-                    @Override
-                    public void solveList(List<NewsBean> list) {
-                        allList.addAll(list);
-                        if(Utils.getLastDay(finalToday).equals(finalDate)){
-                            //更新完毕了哈哈，可行，哈哈哈，就是太复杂了
-                            adapter.addNewsInFront(allList);
+            if(today.equals(date)){
+                Toast.makeText(this,"没有什么可刷新的了",Toast.LENGTH_SHORT).show();
+            }else {
+                final List<NewsBean> allList = new LinkedList<>();
+                editor.putString(Utils.LATEST_DATE,today);
+                editor.commit();
+                today = Utils.getTomorrow(today);
+                date = Utils.getTomorrow(date);
+                while(!today.equals(date)){
+                    //加载到之前的一天
+                    final String finalToday = today;
+                    final String finalDate = date;
+                    new NewsTask(this, new NewsTask.OnSolveResponse() {
+                        @Override
+                        public void solveDate(String date) {
+                            //这里就不做日期处理了，下面自动搞成下一天了
                         }
-                    }
-                }).execute(Http.PASS_DAY_NEWS+today);
-                today = Utils.getLastDay(today);//自动转下一天
+                        @Override
+                        public void solveList(List<NewsBean> list) {
+                            allList.addAll(list);
+                            if(Utils.getLastDay(finalToday).equals(finalDate)){
+                                adapter.addNewsInFront(allList);
+                            }
+                        }
+                    }).execute(Http.PASS_DAY_NEWS+today);
+                    today = Utils.getLastDay(today);//自动转下一天
+                }
             }
         }
         refreshLayout.setRefreshing(false);
@@ -231,9 +228,16 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
      */
     @Override
     public void onOverflowClick(int position) {
+
         NewsBean bean = adapter.getStoriesBeanList().get(position);
-        Log.d("j", String.valueOf(bean.getId()));
-        Toast.makeText(this,String.valueOf(bean.getId()),Toast.LENGTH_SHORT).show();
+        if(db.isFavourite(bean)){
+            bean.setLoved(false);
+            db.deleteFavourite(bean);
+        }else {
+            bean.setLoved(true);
+            db.saveFavourite(bean);
+        }
+        adapter.notifyDataSetChanged();
     }
 
     /**
@@ -261,4 +265,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
     public void solveList(List<NewsBean> list) {
         adapter.onRefreshList(list);
     }
+
+
+
 }

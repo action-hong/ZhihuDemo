@@ -5,6 +5,7 @@ import java.util.List;
 /**
  * Created by forever 18 kkopite on 2016/6/29 21:01.
  */
+@SuppressWarnings("ALL")
 public class NewsDetail {
 
 

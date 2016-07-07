@@ -2,6 +2,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".activity.MainActivity">
+
+    <item
+        android:id="@+id/user_love"
+        android:orderInCategory="100"
+        android:icon="@mipmap/fav_normal"
+        app:showAsAction="ifRoom"
+        android:title="@string/favorite"/>
+
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
@@ -14,9 +22,5 @@
         android:title="@string/clear_db"
         app:showAsAction="never" />
 
-    <item
-        android:id="@+id/add_more"
-        android:orderInCategory="100"
-        android:title="@string/add_more"
-        app:showAsAction="never" />
+
 </menu>

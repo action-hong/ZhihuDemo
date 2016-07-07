@@ -1,7 +1,7 @@
 package com.example.kkopite.zhihudemo.task;
 
+import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.util.Log;
 import android.webkit.WebView;
 
@@ -18,12 +18,12 @@ import java.util.Objects;
 public class NewsDetailTask extends AsyncTask<Integer,Void,NewsDetail> {
     private static final String DEFAULT = "file:///android_asset/news_detail_header_image.jpg";
 
+    private Context context;
     private WebView webView;
-    private OnProgressBar onProgressBar;//
 
-    public NewsDetailTask(WebView webView,OnProgressBar onProgressBar){
+    public NewsDetailTask(WebView webView,Context context){
         this.webView = webView;
-        this.onProgressBar = onProgressBar;
+        this.context = context;
     }
 
     @Override
@@ -57,7 +57,6 @@ public class NewsDetailTask extends AsyncTask<Integer,Void,NewsDetail> {
                 + newsDetail.getBody().replace("<div class=\"img-place-holder\">", sb);
         webView.loadDataWithBaseURL("file:///android_asset/", mNewsContent, "text/html", "UTF-8", null);
         Log.d("可恶呀","救救我吧");
-        onProgressBar.doSomething();
     }
 
     public NewsDetail getNewsDetailWithGson(String response){
@@ -65,11 +64,4 @@ public class NewsDetailTask extends AsyncTask<Integer,Void,NewsDetail> {
         return gson.fromJson(response,NewsDetail.class);
     }
 
-    /**
-     * 缓冲标志图像处理接口
-     */
-    public interface OnProgressBar{
-
-        void doSomething();
-    }
 }

@@ -2,7 +2,6 @@ package com.example.kkopite.zhihudemo.adpter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +10,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.kkopite.zhihudemo.R;
+import com.example.kkopite.zhihudemo.db.NewsListDB;
 import com.example.kkopite.zhihudemo.model.NewsBean;
 import com.example.kkopite.zhihudemo.utils.Utils;
 import com.squareup.picasso.Picasso;
@@ -26,6 +26,7 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<NewsBean> storiesBeanList;
     private Context mContext;
     private CardClickListener mCardClickListener;//item监听器
+    private NewsListDB db;
 
     private static final int WITH_DATA = 0;//有日期的card
     private static final int NO_DATA = 1;//没有日期的card
@@ -40,6 +41,7 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public NewsAdapter(List<NewsBean> storiesBeanList,Context mContext){
         this.storiesBeanList = storiesBeanList;
         this.mContext = mContext;
+        db = NewsListDB.getInstance(mContext);
     }
 
     public void onRefreshList(List<NewsBean> list){
@@ -78,7 +80,6 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public void setLoadStatus(int status){
         this.loadStatus = status;
-//        notifyItemChanged(getItemCount());
         notifyDataSetChanged();
     }
 
@@ -107,7 +108,6 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     ((FooterViewHolder) holder).pb.setVisibility(View.GONE);
                     break;
                 case LOADING_MORE:
-                    Log.d("d","meiyouzhixing a ");
                     ((FooterViewHolder) holder).text.setVisibility(View.GONE);
                     ((FooterViewHolder) holder).pb.setVisibility(View.VISIBLE);
                     break;
@@ -126,6 +126,12 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             String url = bean.getImages();
 
             Picasso.with(mContext).load(url).into(((CardViewHolder) holder).newsImage);
+
+            if(db.isFavourite(bean)){
+                ((CardViewHolder) holder).overflow.setImageResource(R.mipmap.fav_active_1);
+            }else {
+                ((CardViewHolder) holder).overflow.setImageResource(R.mipmap.fav_normal_1);
+            }
 
             if(holder instanceof DateCarViewHolder){
                 //每天的第一条,需要加上日期
