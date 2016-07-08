@@ -23,20 +23,20 @@ import java.util.List;
  */
 public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private List<NewsBean> storiesBeanList;
-    private Context mContext;
-    private CardClickListener mCardClickListener;//item监听器
-    private NewsListDB db;
+    protected List<NewsBean> storiesBeanList;
+    protected Context mContext;
+    protected CardClickListener mCardClickListener;//item监听器
+    protected NewsListDB db;
 
-    private static final int WITH_DATA = 0;//有日期的card
-    private static final int NO_DATA = 1;//没有日期的card
-    private static final int FOOT_ITEM = 2;
+    protected static final int WITH_DATA = 0;//有日期的card
+    protected static final int NO_DATA = 1;//没有日期的card
+    protected static final int FOOT_ITEM = 2;
 
     public static final int PULL_LOAD_MORE = 0;//加载完毕
     public static final int LOADING_MORE = 1;//正在加载
     public static final int NOT_SHOW = 2;//当recyclerView为空时,不显示
 
-    private int loadStatus = 0;
+    protected int loadStatus = 0;
 
     public NewsAdapter(List<NewsBean> storiesBeanList,Context mContext){
         this.storiesBeanList = storiesBeanList;
@@ -58,7 +58,7 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      * 添加新数据到list中
      * @param list 添加数据
      */
-    private void addNews(List<NewsBean> list) {
+    protected void addNews(List<NewsBean> list) {
         this.storiesBeanList.addAll(list);
     }
 
