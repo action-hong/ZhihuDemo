@@ -16,9 +16,10 @@ public class FavoriteActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_favorite);
 
+
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.content_favorite);
         NewsListDB db = NewsListDB.getInstance(this);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.news_list);

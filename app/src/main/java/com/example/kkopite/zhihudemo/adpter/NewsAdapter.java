@@ -128,9 +128,9 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             Picasso.with(mContext).load(url).into(((CardViewHolder) holder).newsImage);
 
             if(db.isFavourite(bean)){
-                ((CardViewHolder) holder).overflow.setImageResource(R.mipmap.fav_active_1);
+                ((CardViewHolder) holder).overflow.setImageResource(R.drawable.ic_favorite_red_24dp1);
             }else {
-                ((CardViewHolder) holder).overflow.setImageResource(R.mipmap.fav_normal_1);
+                ((CardViewHolder) holder).overflow.setImageResource(R.drawable.ic_favorite_gray_24dp1);
             }
 
             if(holder instanceof DateCarViewHolder){

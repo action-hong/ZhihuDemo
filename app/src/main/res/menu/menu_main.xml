@@ -6,7 +6,7 @@
     <item
         android:id="@+id/user_love"
         android:orderInCategory="100"
-        android:icon="@mipmap/fav_normal"
+        android:icon="@drawable/ic_favorite_black_24dp"
         app:showAsAction="ifRoom"
         android:title="@string/favorite"/>
 

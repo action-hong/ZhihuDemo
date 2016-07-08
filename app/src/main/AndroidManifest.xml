@@ -22,12 +22,22 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".activity.WebActivity"/>
+        <activity
+            android:parentActivityName=".activity.MainActivity"
+            android:name=".activity.WebActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activity.MainActivity"/>
+
+        </activity>
         <activity
             android:name=".activity.BaseActivity"
             android:label="@string/title_activity_base"
             android:theme="@style/AppTheme.NoActionBar"/>
-        <activity android:name=".activity.FavoriteActivity">
+        <activity
+            android:label="@string/collection"
+            android:parentActivityName=".activity.MainActivity"
+            android:name=".activity.FavoriteActivity">
         </activity>
     </application>
 

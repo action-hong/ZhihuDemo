@@ -2,7 +2,6 @@ package com.example.kkopite.zhihudemo.task;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.webkit.WebView;
 
 import com.example.kkopite.zhihudemo.http.Http;
@@ -56,7 +55,6 @@ public class NewsDetailTask extends AsyncTask<Integer,Void,NewsDetail> {
                 + "<link rel=\"stylesheet\" type=\"text/css\" href=\"news_header_style.css\"/>"
                 + newsDetail.getBody().replace("<div class=\"img-place-holder\">", sb);
         webView.loadDataWithBaseURL("file:///android_asset/", mNewsContent, "text/html", "UTF-8", null);
-        Log.d("可恶呀","救救我吧");
     }
 
     public NewsDetail getNewsDetailWithGson(String response){

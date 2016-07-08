@@ -67,8 +67,8 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                             lastItemPosition + 1 == adapter.getItemCount()){
                         refreshLayout.setEnabled(false);
                         //电脑测时太快，看不到缓冲效果
-                        adapter.setLoadStatus(NewsAdapter.LOADING_MORE);
                         addMoreNews();//请求添加新数据
+                        adapter.setLoadStatus(NewsAdapter.LOADING_MORE);
                     }
                 }
             }
