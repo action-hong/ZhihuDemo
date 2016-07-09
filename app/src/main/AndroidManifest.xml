@@ -23,22 +23,27 @@
             </intent-filter>
         </activity>
         <activity
-            android:parentActivityName=".activity.MainActivity"
-            android:name=".activity.WebActivity">
+            android:name=".activity.WebActivity"
+            android:parentActivityName=".activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity"/>
-
         </activity>
         <activity
             android:name=".activity.BaseActivity"
             android:label="@string/title_activity_base"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity
+            android:name=".activity.FavoriteActivity"
             android:label="@string/collection"
-            android:parentActivityName=".activity.MainActivity"
-            android:name=".activity.FavoriteActivity">
+            android:parentActivityName=".activity.MainActivity">
         </activity>
+        <activity
+            android:name=".activity.DateActivity"
+            android:parentActivityName=".activity.MainActivity"
+            android:label="@string/app_name"/>
+
+
     </application>
 
 </manifest>

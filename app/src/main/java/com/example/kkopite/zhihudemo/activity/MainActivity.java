@@ -1,5 +1,6 @@
 package com.example.kkopite.zhihudemo.activity;
 
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.DatePicker;
 import android.widget.Toast;
 
 import com.example.kkopite.zhihudemo.R;
@@ -19,6 +21,7 @@ import com.example.kkopite.zhihudemo.task.NewsTask;
 import com.example.kkopite.zhihudemo.utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -129,9 +132,40 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             case R.id.user_love:
                 startActivity(new Intent(this, FavoriteActivity.class));
                 break;
+            case R.id.search_news:
+                showDatePicker();
+                break;
+
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showDatePicker() {
+
+        Calendar c = Calendar.getInstance();
+
+        new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+                month++;
+                String date = year + ""
+                        + (month < 10 ? "0" + month : month) + ""
+                        + (day < 10 ? "0" + day : day);
+                String today = Utils.getToday();
+                if (Integer.parseInt(date) > Integer.parseInt(today)) {
+                    Toast.makeText(MainActivity.this, "那天都还没到了,哪来的新闻", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, date, Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(MainActivity.this,DateActivity.class);
+                    intent.putExtra(Utils.PICK_DATE,Utils.getTomorrow(date));
+                    startActivity(intent);
+                }
+            }
+        }
+                , c.get(Calendar.YEAR)
+                , c.get(Calendar.MONTH)
+                , c.get(Calendar.DAY_OF_MONTH)).show();
     }
 
     /**

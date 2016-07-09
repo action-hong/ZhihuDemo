@@ -21,8 +21,9 @@ public class Utils {
     public static final String LATEST_DATE = "latest_date";//所有内容中最新的内容的日期
     public static final String IS_FIRST_TIME = "is_first_time";//首次使用
     public static final String ZHIHU_FIRST_DAY = "20130520";//最多只能刷到这一天
+    public static final String PICK_DATE = "pick_date";//选择的日期
     public static SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.CHINA);
-
+    public static SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy年MM月dd日", Locale.CHINA);
     /**
      * 获取今天的日期，比如今天是16年7月3日，就返回20160703
      *
@@ -66,6 +67,10 @@ public class Utils {
         return sdf.format(c.getTime());
     }
 
+    public static String getDate(String date) {
+        return sdf2.format(date);
+    }
+
     public static final class Types {
         public static final Type newsListType = new TypeToken<List<NewsBean>>() {
 
@@ -75,7 +80,7 @@ public class Utils {
     public static String getNormalDate(String date) {
         String result = date;
         try {
-            result = new SimpleDateFormat("yyyy年MM月dd日", Locale.CHINA).format(sdf.parse(date));
+            result = sdf2.format(sdf.parse(date));
         } catch (ParseException e) {
             e.printStackTrace();
         }
