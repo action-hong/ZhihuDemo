@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 /**
  * Created by forever 18 kkopite on 2016/7/1 21:01.
  */
-public class DBHelper extends SQLiteOpenHelper{
+public class DBHelper extends SQLiteOpenHelper {
 
 
     public static final String TABLE_NAME = "daily_news_lists";

@@ -12,13 +12,20 @@ import com.example.kkopite.zhihudemo.adpter.MyItemTouch;
 import com.example.kkopite.zhihudemo.adpter.NewsAdapter;
 import com.example.kkopite.zhihudemo.db.NewsListDB;
 import com.example.kkopite.zhihudemo.model.NewsBean;
+import com.example.kkopite.zhihudemo.task.LoadHandler;
 import com.example.kkopite.zhihudemo.utils.Utils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FavoriteActivity extends AppCompatActivity implements NewsAdapter.CardClickListener{
 
     private List<NewsBean> mList;
+    private NewsListDB db;
+    private NewsAdapter adapter;
+
+    private RecyclerView recyclerView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,19 +33,34 @@ public class FavoriteActivity extends AppCompatActivity implements NewsAdapter.C
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.content_favorite);
-        final NewsListDB db = NewsListDB.getInstance(this);
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.news_list);
-        mList = db.loadFavourite();
-        final NewsAdapter adapter = new NewsAdapter(mList, this);
+        mList = new ArrayList<>();
 
+        bindView();
+
+    }
+
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        new LoadHandler(mList,db,adapter).sendEmptyMessage(LoadHandler.LOAD_FROM_FAVORITE);
+    }
+
+    private void bindView() {
+        db = NewsListDB.getInstance(this);
+
+        adapter = new NewsAdapter(mList, this);
+        adapter.setCardClickListener(this);
+        adapter.setLoadStatus(NewsAdapter.NOT_SHOW);
+
+        recyclerView = (RecyclerView) findViewById(R.id.news_list);
         LinearLayoutManager llm = new LinearLayoutManager(this);
-
         recyclerView.setLayoutManager(llm);
         recyclerView.setAdapter(adapter);
-        adapter.setCardClickListener(this);
-        MyItemTouch callback = new MyItemTouch(adapter);
-        callback.setListener(new MyItemTouch.OnItemMoveListener() {
+
+        MyItemTouch callback = new MyItemTouch(new MyItemTouch.OnItemMoveListener() {
             @Override
             public void onItemDismiss(int position) {
                 db.deleteFavourite(mList.get(position));
@@ -52,12 +74,12 @@ public class FavoriteActivity extends AppCompatActivity implements NewsAdapter.C
 
             }
         });
+
         ItemTouchHelper helper = new ItemTouchHelper(callback);
         helper.attachToRecyclerView(recyclerView);
-
-        adapter.setLoadStatus(NewsAdapter.NOT_SHOW);
-
     }
+
+
 
     @Override
     public void onContentClick(int position) {

@@ -14,10 +14,11 @@ import com.example.kkopite.zhihudemo.model.NewsBean;
 import com.example.kkopite.zhihudemo.task.NewsDetailTask;
 import com.example.kkopite.zhihudemo.utils.Utils;
 
-public class WebActivity extends AppCompatActivity{
+public class WebActivity extends AppCompatActivity {
 
     private WebView webView;
     private NewsBean news;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -27,13 +28,10 @@ public class WebActivity extends AppCompatActivity{
         setWebView();
 
 
-
         news = (NewsBean) getIntent().getSerializableExtra(Utils.NEWS_BEAN);
 
 
-
-
-        new NewsDetailTask(webView,this).execute(news.getId());
+        new NewsDetailTask(webView, this).execute(news.getId());
 
 
     }
@@ -55,7 +53,7 @@ public class WebActivity extends AppCompatActivity{
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        switch (id){
+        switch (id) {
             case R.id.fav_share:
                 shareNews();
                 return true;
@@ -70,6 +68,6 @@ public class WebActivity extends AppCompatActivity{
         share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);//启动的activity会在app重置的时候销毁
         share.putExtra(Intent.EXTRA_TEXT,
                 news.getTitle() + " " + Http.DETAIL_NEWS + news.getId() + "分享来自知乎");
-        startActivity(Intent.createChooser(share,"分享..."));
+        startActivity(Intent.createChooser(share, "分享..."));
     }
 }

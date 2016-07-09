@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Created by forever 18 kkopite on 2016/6/26 18:04.
  */
-public class NewsBean implements Serializable{
+public class NewsBean implements Serializable {
 
 
     /**
@@ -22,7 +22,8 @@ public class NewsBean implements Serializable{
     private String images;
     private String date;
 
-    public NewsBean(){}
+    public NewsBean() {
+    }
 
     public NewsBean(String title, String images, int id) {
         this.title = title;
