@@ -32,13 +32,13 @@ public class LoadHandler extends Handler {
         switch (msg.what) {
             case LOAD_FROM_TABLE:
                 //取出所有数据
-                beanList = db.getAllNews();
+                beanList.addAll(db.getAllNews());
                 break;
             case LOAD_FROM_FAVORITE:
                 //取出收藏的数据
-                beanList = db.loadFavourite();
+                beanList.addAll(db.loadFavourite());
                 break;
         }
-        adapter.onRefreshList(beanList);
+        adapter.notifyDataSetChanged();
     }
 }

@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -23,7 +24,7 @@ public class Utils {
     public static final String ZHIHU_FIRST_DAY = "20130520";//最多只能刷到这一天
     public static final String PICK_DATE = "pick_date";//选择的日期
     public static SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd", Locale.CHINA);
-    public static SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy年MM月dd日", Locale.CHINA);
+    public static SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy.MM.dd", Locale.CHINA);
     /**
      * 获取今天的日期，比如今天是16年7月3日，就返回20160703
      *
@@ -33,6 +34,8 @@ public class Utils {
         Date date = new Date(System.currentTimeMillis());
         return sdf.format(date);
     }
+
+
 
     /**
      * 得到下一天
@@ -85,6 +88,15 @@ public class Utils {
             e.printStackTrace();
         }
         return result;
+    }
+
+    public static List<String> getArrayDate(String from,String to){
+        List<String> mList = new ArrayList<>();
+        while(!from.equals(to)){
+            mList.add(from);
+            from = getLastDay(from);
+        }
+        return mList;
     }
 
 }

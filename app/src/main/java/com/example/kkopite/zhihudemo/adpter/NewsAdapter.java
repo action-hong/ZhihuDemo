@@ -30,7 +30,7 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     protected static final int WITH_DATA = 0;//有日期的card
     protected static final int NO_DATA = 1;//没有日期的card
-    protected static final int FOOT_ITEM = 2;
+    protected static final int FOOT_ITEM = 2;//底部上啦刷新显示
 
     public static final int PULL_LOAD_MORE = 0;//加载完毕
     public static final int LOADING_MORE = 1;//正在加载
@@ -45,31 +45,31 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     public void onRefreshList(List<NewsBean> list) {
-        addNews(list);
+        int topData = storiesBeanList.size() == 0 ?
+                0 : Integer.parseInt(storiesBeanList.get(0).getDate());
+        int newData = Integer.parseInt(list.get(0).getDate());
+        if (topData >= newData) {
+            //插入的新闻应该在尾部
+            storiesBeanList.addAll(list);
+        } else {
+            //插入的新闻更新,应该插在首位
+            list.addAll(storiesBeanList);
+            storiesBeanList = list;
+        }
         notifyDataSetChanged();
     }
+
+    public void onUpdateList(List<NewsBean> list){
+        this.storiesBeanList = list;
+        notifyDataSetChanged();
+    }
+
 
     public void clearAll() {
         this.storiesBeanList = new ArrayList<>();
         notifyDataSetChanged();
     }
 
-    /**
-     * 添加新数据到list中
-     *
-     * @param list 添加数据
-     */
-    protected void addNews(List<NewsBean> list) {
-        this.storiesBeanList.addAll(list);
-    }
-
-    public void addNewsInFront(List<NewsBean> list) {
-        //将新list插在前面
-        List<NewsBean> mList = storiesBeanList;
-        storiesBeanList = list;
-        storiesBeanList.addAll(mList);
-        notifyDataSetChanged();
-    }
 
     public void setCardClickListener(CardClickListener mCardClickListener) {
         this.mCardClickListener = mCardClickListener;
@@ -157,6 +157,7 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public int getItemCount() {
         return storiesBeanList.size() + 1;
     }
+
 
     public static class CardViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public ImageView newsImage;

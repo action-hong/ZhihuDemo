@@ -12,20 +12,23 @@ import com.example.kkopite.zhihudemo.adpter.MyItemTouch;
 import com.example.kkopite.zhihudemo.adpter.NewsAdapter;
 import com.example.kkopite.zhihudemo.db.NewsListDB;
 import com.example.kkopite.zhihudemo.model.NewsBean;
-import com.example.kkopite.zhihudemo.task.LoadHandler;
+import com.example.kkopite.zhihudemo.observable.NewsListFromDB;
 import com.example.kkopite.zhihudemo.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class FavoriteActivity extends AppCompatActivity implements NewsAdapter.CardClickListener{
+import rx.Observer;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+
+public class FavoriteActivity extends AppCompatActivity implements NewsAdapter.CardClickListener, Observer<List<NewsBean>> {
 
     private List<NewsBean> mList;
     private NewsListDB db;
     private NewsAdapter adapter;
 
-    private RecyclerView recyclerView;
-
+    private static final String TAG = "FavoriteActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,15 +41,19 @@ public class FavoriteActivity extends AppCompatActivity implements NewsAdapter.C
 
         bindView();
 
+        loadListFromDB();//数据库加载
     }
 
-
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        new LoadHandler(mList,db,adapter).sendEmptyMessage(LoadHandler.LOAD_FROM_FAVORITE);
+    /**
+     * 从数据库加载
+     */
+    private void loadListFromDB() {
+        NewsListFromDB.getNewsListFrommDB(NewsListFromDB.FROOM_FAV, db)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this);
     }
+
 
     private void bindView() {
         db = NewsListDB.getInstance(this);
@@ -55,7 +62,7 @@ public class FavoriteActivity extends AppCompatActivity implements NewsAdapter.C
         adapter.setCardClickListener(this);
         adapter.setLoadStatus(NewsAdapter.NOT_SHOW);
 
-        recyclerView = (RecyclerView) findViewById(R.id.news_list);
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.news_list);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(llm);
         recyclerView.setAdapter(adapter);
@@ -66,7 +73,6 @@ public class FavoriteActivity extends AppCompatActivity implements NewsAdapter.C
                 db.deleteFavourite(mList.get(position));
                 mList.remove(position);
                 adapter.notifyItemRemoved(position);
-                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -80,17 +86,31 @@ public class FavoriteActivity extends AppCompatActivity implements NewsAdapter.C
     }
 
 
-
     @Override
     public void onContentClick(int position) {
         NewsBean bean = mList.get(position);
-        Intent intent = new Intent(this,WebActivity.class);
-        intent.putExtra(Utils.NEWS_BEAN,bean);
+        Intent intent = new Intent(this, WebActivity.class);
+        intent.putExtra(Utils.NEWS_BEAN, bean);
         startActivity(intent);
     }
 
     @Override
     public void onOverflowClick(int position) {
 
+    }
+
+    @Override
+    public void onCompleted() {
+        adapter.onUpdateList(mList);
+    }
+
+    @Override
+    public void onError(Throwable e) {
+
+    }
+
+    @Override
+    public void onNext(List<NewsBean> newsBeen) {
+        mList = newsBeen;
     }
 }
