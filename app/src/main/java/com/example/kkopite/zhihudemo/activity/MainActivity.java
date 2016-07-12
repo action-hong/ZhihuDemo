@@ -271,7 +271,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
     /**
      * 加载数据
-     * @param flag
+     * @param flag 那种加载模式
      */
     private void load(int flag) {
         String today = Utils.getToday();//今天的日期
@@ -304,8 +304,8 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
     /**
      * 加载从from到to的新闻
      *
-     * @param from
-     * @param to
+     * @param from 起始加载日期
+     * @param to   终止加载日期
      */
     private void loadListWithRxJava(String from, String to) {
         NewsListFromNetObservable.ofData(from, to)

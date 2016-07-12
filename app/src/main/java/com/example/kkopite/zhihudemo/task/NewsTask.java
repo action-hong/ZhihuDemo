@@ -17,6 +17,7 @@ import java.util.List;
 
 /**
  * Created by forever 18 kkopite on 2016/6/29 16:03.
+ * 太繁琐额
  */
 public class NewsTask extends AsyncTask<String, Void, List<NewsBean>> {
 
