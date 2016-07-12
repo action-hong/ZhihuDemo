@@ -40,10 +40,23 @@ public class NewsListDB {
     }
 
     public void insertContent(String date, String content) {
+        if(hasTheDateInDB(date)){
+            //数据库已经有这个了
+            return;
+        }
         ContentValues values = new ContentValues();
         values.put(DBHelper.COLUMN_DATE, date);
         values.put(DBHelper.COLUMN_CONTENT, content);
         database.insert(DBHelper.TABLE_NAME, null, values);
+    }
+
+    private boolean hasTheDateInDB(String date) {
+        Cursor cursor = database.query(DBHelper.TABLE_NAME, null, DBHelper.COLUMN_DATE + " = ?", new String[]{date}, null, null, null);
+        if(cursor.moveToNext()){
+            cursor.close();
+            return true;
+        }
+        return false;
     }
 
     public List<NewsBean> getAllNews() {

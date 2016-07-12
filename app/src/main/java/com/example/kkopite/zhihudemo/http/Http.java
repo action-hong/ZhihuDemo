@@ -13,11 +13,9 @@ import java.net.URL;
 public class Http {
 
 
-
     public static final String TODAY_NEWS = "http://news-at.zhihu.com/api/4/news/latest";
     public static final String DETAIL_NEWS = "http://news-at.zhihu.com/api/4/news/";
     public static final String PASS_DAY_NEWS = "http://news.at.zhihu.com/api/4/news/before/";
-
 
 
     public static String get(String address) {
@@ -28,11 +26,11 @@ public class Http {
             con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("User-Agent", "Mozilla/5.0");
-            if(con.getResponseCode() == HttpURLConnection.HTTP_OK){
+            if (con.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 BufferedReader bf = new BufferedReader(new InputStreamReader(con.getInputStream()));
                 String line;
                 StringBuilder sb = new StringBuilder();
-                while ((line=bf.readLine()) != null) {
+                while ((line = bf.readLine()) != null) {
                     sb.append(line);
                 }
                 bf.close();
@@ -40,7 +38,7 @@ public class Http {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             assert con != null;
             con.disconnect();
         }
@@ -48,7 +46,7 @@ public class Http {
     }
 
     public static String getDetailNews(int id) throws IOException {
-        return get(DETAIL_NEWS+id);
+        return get(DETAIL_NEWS + id);
     }
 
 

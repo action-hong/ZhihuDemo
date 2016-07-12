@@ -1,5 +1,6 @@
 package com.example.kkopite.zhihudemo.activity;
 
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,29 +13,38 @@ import android.widget.Toast;
 
 import com.example.kkopite.zhihudemo.R;
 import com.example.kkopite.zhihudemo.adpter.NewsAdapter;
-import com.example.kkopite.zhihudemo.http.Http;
+import com.example.kkopite.zhihudemo.db.NewsListDB;
 import com.example.kkopite.zhihudemo.model.NewsBean;
-import com.example.kkopite.zhihudemo.task.NewsTask;
+import com.example.kkopite.zhihudemo.observable.NewsListFromDB;
+import com.example.kkopite.zhihudemo.observable.NewsListFromNetObservable;
 import com.example.kkopite.zhihudemo.utils.Utils;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Calendar;
 import java.util.List;
 
-public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener,NewsAdapter.CardClickListener,NewsTask.OnSolveResponse{
+import rx.Observer;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+
+public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener, NewsAdapter.CardClickListener, Observer<List<NewsBean>> {
 
     private SwipeRefreshLayout refreshLayout;
     private NewsAdapter adapter;
+    private List<NewsBean> newsBeanList = new ArrayList<>();
     private LinearLayoutManager llm;
     private boolean useLatestLoad = false;//是否需要使用最新消息加载
+
+    public static final int EMPTY_LOAD = 1;//数据为空时加载
+    public static final int LOAD_MORE = 2;//滑到底部，上拉加载更多
+    public static final int LOAD_NEW = 3;//顶部下拉刷新，加载最新内容
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         layoutID = R.layout.activity_main;
 
         super.onCreate(savedInstanceState);
-
-        List<NewsBean> newsBeanList = new ArrayList<>();
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.news_list);
 
@@ -49,7 +59,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
 
         //实例适配器,设置item点击事件
-        adapter = new NewsAdapter(newsBeanList,this);
+        adapter = new NewsAdapter(newsBeanList, this);
         adapter.setCardClickListener(this);
         recyclerView.setAdapter(adapter);
 
@@ -61,10 +71,10 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
-                if(!refreshLayout.isRefreshing()){
+                if (!refreshLayout.isRefreshing()) {
                     //只有当recycler非空的时候，才可以上啦刷新
-                    if(newState == RecyclerView.SCROLL_STATE_IDLE && !useLatestLoad &&
-                            lastItemPosition + 1 == adapter.getItemCount()){
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE && !useLatestLoad &&
+                            lastItemPosition + 1 == adapter.getItemCount()) {
                         refreshLayout.setEnabled(false);
                         //电脑测时太快，看不到缓冲效果
                         addMoreNews();//请求添加新数据
@@ -81,27 +91,27 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         });
 
 
-         if (isUseLatestLoading()){
+        if (isUseLatestLoading()) {
             //请求今天的内容
-            new NewsTask(this,this).execute(Http.TODAY_NEWS);
-            useLatestLoad = false;
-        }else {
-            //数据库取消息
-            newsBeanList = db.getAllNews();
-            adapter.onRefreshList(newsBeanList);
+            load(EMPTY_LOAD);
+        } else {
+            //不要在UI线程做耗时操作,虽然这个数据量也不大
+            loadListFromDB(NewsListFromDB.FROM_ALL,db);
         }
     }
 
 
+
     /**
      * 检查是否需要加载最新内容
+     *
      * @return 是否需要加载最新内容
      */
     private boolean isUseLatestLoading() {
-        useLatestLoad = pref.getBoolean(Utils.IS_FIRST_TIME,true);
-        if(useLatestLoad){
+        useLatestLoad = pref.getBoolean(Utils.IS_FIRST_TIME, true);
+        if (useLatestLoad) {
             //是第一次,改成不是第一次
-            editor.putBoolean(Utils.IS_FIRST_TIME,false);
+            editor.putBoolean(Utils.IS_FIRST_TIME, false);
             editor.commit();
         }
         return useLatestLoad;
@@ -119,18 +129,46 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        switch (id){
+        switch (id) {
             case R.id.clear_db:
                 clearCache();
                 break;
             case R.id.action_settings:
                 break;
             case R.id.user_love:
-                startActivity(new Intent(this,FavoriteActivity.class));
+                startActivity(new Intent(this, FavoriteActivity.class));
                 break;
+            case R.id.search_news:
+                showDatePicker();
+                break;
+
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showDatePicker() {
+
+        Calendar c = Calendar.getInstance();
+
+        new DatePickerDialog(this, (datePicker, year, month, day) -> {
+            month++;
+            String date = year + ""
+                    + (month < 10 ? "0" + month : month) + ""
+                    + (day < 10 ? "0" + day : day);
+            String today = Utils.getToday();
+            if (Integer.parseInt(date) > Integer.parseInt(today)) {
+                Toast.makeText(MainActivity.this, "那天都还没到了,哪来的新闻", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(MainActivity.this, date, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, DateActivity.class);
+                intent.putExtra(Utils.PICK_DATE, Utils.getTomorrow(date));
+                startActivity(intent);
+            }
+        }
+                , c.get(Calendar.YEAR)
+                , c.get(Calendar.MONTH)
+                , c.get(Calendar.DAY_OF_MONTH)).show();
     }
 
     /**
@@ -141,131 +179,153 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         db.deleteAll();
         useLatestLoad = true;//为空,不可以使用上拉加载
         adapter.setLoadStatus(NewsAdapter.NOT_SHOW);//为空时，不显示上啦刷新
-        editor.putBoolean(Utils.IS_FIRST_TIME,true);
+        editor.putBoolean(Utils.IS_FIRST_TIME, true);
         editor.commit();
     }
 
 
+    /**
+     * 上拉刷新，加载更多
+     */
     private void addMoreNews() {
-        String date = pref.getString(Utils.LAST_DATE,"");
-        if(date.equals(Utils.ZHIHU_FIRST_DAY)){
-            //最后一天
-            Toast.makeText(this,getResources().getString(R.string.no_more_news),Toast.LENGTH_SHORT).show();
-        }else {
-            //加载date前一天的内容
-            new NewsTask(this, new NewsTask.OnSolveResponse() {
-                @Override
-                public void solveDate(String date) {
-                    editor.putString(Utils.LAST_DATE,date);
-                    editor.commit();
-                }
-                @Override
-                public void solveList(List<NewsBean> list) {
-                    adapter.onRefreshList(list);
-                    adapter.setLoadStatus(NewsAdapter.PULL_LOAD_MORE);
-                    refreshLayout.setEnabled(true);
-                }
-            }).execute(Http.PASS_DAY_NEWS+date);
-        }
+        load(LOAD_MORE);
     }
 
+    /**
+     * 下拉刷新
+     */
     @Override
     public void onRefresh() {
-        if(isUseLatestLoading()){
+        if (isUseLatestLoading()) {
             //为空时，可以使用加载最近的消息
-//            new NewsTask(this,this).execute(Http.PASS_DAY_NEWS+"20160701");
-            new NewsTask(this,this).execute(Http.TODAY_NEWS);
-            adapter.setLoadStatus(NewsAdapter.PULL_LOAD_MORE);
-            useLatestLoad = false;
-        }else {
-            String today = Utils.getToday();
-            String date = pref.getString(Utils.LATEST_DATE,"20160701");
-            if(today.equals(date)){
-                Toast.makeText(this,"没有什么可刷新的了",Toast.LENGTH_SHORT).show();
-            }else {
-                final List<NewsBean> allList = new LinkedList<>();
-                editor.putString(Utils.LATEST_DATE,today);
-                editor.commit();
-                today = Utils.getTomorrow(today);
-                date = Utils.getTomorrow(date);
-                while(!today.equals(date)){
-                    //加载到之前的一天
-                    final String finalToday = today;
-                    final String finalDate = date;
-                    new NewsTask(this, new NewsTask.OnSolveResponse() {
-                        @Override
-                        public void solveDate(String date) {
-                            //这里就不做日期处理了，下面自动搞成下一天了
-                        }
-                        @Override
-                        public void solveList(List<NewsBean> list) {
-                            allList.addAll(list);
-                            if(Utils.getLastDay(finalToday).equals(finalDate)){
-                                adapter.addNewsInFront(allList);
-                            }
-                        }
-                    }).execute(Http.PASS_DAY_NEWS+today);
-                    today = Utils.getLastDay(today);//自动转下一天
-                }
-            }
+            load(EMPTY_LOAD);
+        } else {
+            //加载最新内容
+            load(LOAD_NEW);
         }
         refreshLayout.setRefreshing(false);
     }
 
     /**
      * 点击item内容
+     *
      * @param position 点击的位置
      */
     @Override
     public void onContentClick(int position) {
         NewsBean bean = adapter.getStoriesBeanList().get(position);
-        moreDetail(this,bean);//看更多内容
+        moreDetail(this, bean);//看更多内容
     }
 
     /**
      * 点击overflow
+     *
      * @param position 点击的位置
      */
     @Override
     public void onOverflowClick(int position) {
 
         NewsBean bean = adapter.getStoriesBeanList().get(position);
-        if(db.isFavourite(bean)){
+        if (db.isFavourite(bean)) {
             bean.setLoved(false);
             db.deleteFavourite(bean);
-        }else {
+        } else {
             bean.setLoved(true);
             db.saveFavourite(bean);
         }
+//        adapter.notifyItemChanged(position);//会有闪一下,不好
         adapter.notifyDataSetChanged();
     }
 
     /**
      * 跳转到详细页面
+     *
      * @param context 上下文
      * @param bean    要看具体网页的实例
      */
-    public void moreDetail(Context context,NewsBean bean){
-        Intent intent = new Intent(context,WebActivity.class);
-        intent.putExtra(Utils.NEWS_BEAN,bean);
+    public void moreDetail(Context context, NewsBean bean) {
+        Intent intent = new Intent(context, WebActivity.class);
+        intent.putExtra(Utils.NEWS_BEAN, bean);
         startActivity(intent);
     }
 
 
+    @Override
+    public void onCompleted() {
+        adapter.onRefreshList(newsBeanList);
+        adapter.setLoadStatus(NewsAdapter.PULL_LOAD_MORE);
+        useLatestLoad = false;
+        refreshLayout.setEnabled(true);
+    }
 
     @Override
-    public void solveDate(String date) {
-        //加载最新消息，需要同时传入当前最新的内容的日期，以及准备加载之前一天的日期
-        editor.putString(Utils.LAST_DATE,date);
-        editor.putString(Utils.LATEST_DATE,date);
+    public void onError(Throwable e) {
+
+    }
+
+    @Override
+    public void onNext(List<NewsBean> newsBeen) {
+
+        this.newsBeanList = newsBeen;
+    }
+
+    /**
+     * 加载数据
+     * @param flag 那种加载模式
+     */
+    private void load(int flag) {
+        String today = Utils.getToday();//今天的日期
+        String tomorrow = Utils.getTomorrow(today);//明天的日期
+
+        String newLoad = pref.getString(Utils.LATEST_DATE, "20160701");//目前数据库中最新的日期
+        String lastLoad = pref.getString(Utils.LAST_DATE, "");//目前数据库中最晚的日期
+        switch (flag) {
+            case EMPTY_LOAD:
+                //empty
+                editor.putString(Utils.LAST_DATE, today);
+                editor.putString(Utils.LATEST_DATE, tomorrow);//更新至这个日期
+                loadListWithRxJava(tomorrow, today);
+                break;
+            case LOAD_MORE:
+                //load more
+                String lastLastLoad = Utils.getLastDay(lastLoad);
+                editor.putString(Utils.LAST_DATE, Utils.getLastDay(lastLoad));
+                loadListWithRxJava(lastLoad, lastLastLoad);
+                break;
+            case LOAD_NEW:
+                //new
+                editor.putString(Utils.LATEST_DATE, tomorrow);
+                loadListWithRxJava(tomorrow, newLoad);
+                break;
+        }
         editor.commit();
     }
 
-    @Override
-    public void solveList(List<NewsBean> list) {
-        adapter.onRefreshList(list);
+    /**
+     * 加载从from到to的新闻
+     *
+     * @param from 起始加载日期
+     * @param to   终止加载日期
+     */
+    private void loadListWithRxJava(String from, String to) {
+        NewsListFromNetObservable.ofData(from, to)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(list -> db.insertContent(Utils.getLastDay(from), new Gson().toJson(list)))
+                .subscribe(this);
     }
 
+    /**
+     * 从数据库加载
+     * @param fromAll
+     * @param db
+     */
+    private void loadListFromDB(int fromAll, NewsListDB db) {
+        NewsListFromDB.getNewsListFrommDB(NewsListFromDB.FROM_ALL,db)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this);
+    }
 
 
 }

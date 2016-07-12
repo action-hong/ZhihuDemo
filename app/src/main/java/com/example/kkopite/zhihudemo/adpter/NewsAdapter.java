@@ -30,7 +30,7 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     protected static final int WITH_DATA = 0;//有日期的card
     protected static final int NO_DATA = 1;//没有日期的card
-    protected static final int FOOT_ITEM = 2;
+    protected static final int FOOT_ITEM = 2;//底部上啦刷新显示
 
     public static final int PULL_LOAD_MORE = 0;//加载完毕
     public static final int LOADING_MORE = 1;//正在加载
@@ -38,49 +38,50 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     protected int loadStatus = 0;
 
-    public NewsAdapter(List<NewsBean> storiesBeanList,Context mContext){
+    public NewsAdapter(List<NewsBean> storiesBeanList, Context mContext) {
         this.storiesBeanList = storiesBeanList;
         this.mContext = mContext;
         db = NewsListDB.getInstance(mContext);
     }
 
-    public void onRefreshList(List<NewsBean> list){
-        addNews(list);
+    public void onRefreshList(List<NewsBean> list) {
+        int topData = storiesBeanList.size() == 0 ?
+                0 : Integer.parseInt(storiesBeanList.get(0).getDate());
+        int newData = Integer.parseInt(list.get(0).getDate());
+        if (topData >= newData) {
+            //插入的新闻应该在尾部
+            storiesBeanList.addAll(list);
+        } else {
+            //插入的新闻更新,应该插在首位
+            list.addAll(storiesBeanList);
+            storiesBeanList = list;
+        }
         notifyDataSetChanged();
     }
 
-    public void clearAll(){
+    public void onUpdateList(List<NewsBean> list){
+        this.storiesBeanList = list;
+        notifyDataSetChanged();
+    }
+
+
+    public void clearAll() {
         this.storiesBeanList = new ArrayList<>();
         notifyDataSetChanged();
     }
 
-    /**
-     * 添加新数据到list中
-     * @param list 添加数据
-     */
-    protected void addNews(List<NewsBean> list) {
-        this.storiesBeanList.addAll(list);
-    }
 
-    public  void addNewsInFront(List<NewsBean> list){
-        //将新list插在前面
-        List<NewsBean> mList = storiesBeanList;
-        storiesBeanList = list;
-        storiesBeanList.addAll(mList);
-        notifyDataSetChanged();
-    }
-
-    public void setCardClickListener(CardClickListener mCardClickListener){
+    public void setCardClickListener(CardClickListener mCardClickListener) {
         this.mCardClickListener = mCardClickListener;
     }
 
-    public List<NewsBean> getStoriesBeanList(){
+    public List<NewsBean> getStoriesBeanList() {
         return this.storiesBeanList;
     }
 
-    public void setLoadStatus(int status){
+    public void setLoadStatus(int status) {
         this.loadStatus = status;
-        notifyDataSetChanged();
+        notifyItemChanged(storiesBeanList.size());
     }
 
     @Override
@@ -88,12 +89,12 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         final Context context = parent.getContext();
         LayoutInflater mInflater = LayoutInflater.from(context);
-        if(viewType == WITH_DATA){
-            return new DateCarViewHolder(mInflater.inflate(R.layout.item_with_data,null),mCardClickListener);
-        }else if(viewType == NO_DATA){
-            return new CardViewHolder(mInflater.inflate(R.layout.news_list_item,null),mCardClickListener);
-        }else {
-            return new FooterViewHolder(mInflater.inflate(R.layout.footer_layout,parent,false));
+        if (viewType == WITH_DATA) {
+            return new DateCarViewHolder(mInflater.inflate(R.layout.item_with_data, null), mCardClickListener);
+        } else if (viewType == NO_DATA) {
+            return new CardViewHolder(mInflater.inflate(R.layout.news_list_item, null), mCardClickListener);
+        } else {
+            return new FooterViewHolder(mInflater.inflate(R.layout.footer_layout, parent, false));
         }
 
     }
@@ -101,8 +102,8 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
 
-        if(holder instanceof FooterViewHolder){
-            switch (loadStatus){
+        if (holder instanceof FooterViewHolder) {
+            switch (loadStatus) {
                 case PULL_LOAD_MORE:
                     ((FooterViewHolder) holder).text.setVisibility(View.VISIBLE);
                     ((FooterViewHolder) holder).pb.setVisibility(View.GONE);
@@ -117,23 +118,23 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     break;
             }
 
-        }else {
+        } else {
             NewsBean bean = storiesBeanList.get(position);
 
-            ((CardViewHolder)holder).dailyTitle.setText(bean.getTitle());
-            ((CardViewHolder)holder).questionTitle.setText(bean.getTitle());
+            ((CardViewHolder) holder).dailyTitle.setText(bean.getTitle());
+            ((CardViewHolder) holder).questionTitle.setText(bean.getTitle());
 
             String url = bean.getImages();
 
             Picasso.with(mContext).load(url).into(((CardViewHolder) holder).newsImage);
 
-            if(db.isFavourite(bean)){
+            if (db.isFavourite(bean)) {
                 ((CardViewHolder) holder).overflow.setImageResource(R.drawable.ic_favorite_red_24dp1);
-            }else {
+            } else {
                 ((CardViewHolder) holder).overflow.setImageResource(R.drawable.ic_favorite_gray_24dp1);
             }
 
-            if(holder instanceof DateCarViewHolder){
+            if (holder instanceof DateCarViewHolder) {
                 //每天的第一条,需要加上日期
                 ((DateCarViewHolder) holder).mData.setText(Utils.getNormalDate(bean.getDate()));
             }
@@ -143,9 +144,9 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public int getItemViewType(int position) {
-        if(position + 1 == getItemCount()){
+        if (position + 1 == getItemCount()) {
             return FOOT_ITEM;
-        }else if(storiesBeanList.get(position).getDate() != null){
+        } else if (storiesBeanList.get(position).getDate() != null) {
             return WITH_DATA;
         } else {
             return NO_DATA;
@@ -157,14 +158,15 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return storiesBeanList.size() + 1;
     }
 
-    public static class CardViewHolder extends RecyclerView.ViewHolder  implements View.OnClickListener{
+
+    public static class CardViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public ImageView newsImage;
         public TextView questionTitle;
         public TextView dailyTitle;
         public ImageView overflow;
         public CardClickListener cardClickListener;
 
-        public CardViewHolder(View v,CardClickListener cardClickListener) {
+        public CardViewHolder(View v, CardClickListener cardClickListener) {
             super(v);
             newsImage = (ImageView) v.findViewById(R.id.thumbnail_image);
             questionTitle = (TextView) v.findViewById(R.id.question_title);
@@ -177,27 +179,27 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         @Override
         public void onClick(View view) {
-            if(cardClickListener == null) return;
-            if(view.getId() == R.id.card_share_overflow){
+            if (cardClickListener == null) return;
+            if (view.getId() == R.id.card_share_overflow) {
                 cardClickListener.onOverflowClick(getAdapterPosition());
-            }else{
+            } else {
                 cardClickListener.onContentClick(getAdapterPosition());
             }
 
         }
     }
 
-    public static class DateCarViewHolder extends CardViewHolder{
+    public static class DateCarViewHolder extends CardViewHolder {
 
         private TextView mData;
 
-        public DateCarViewHolder(View v,CardClickListener cardClickListener) {
-            super(v,cardClickListener);
+        public DateCarViewHolder(View v, CardClickListener cardClickListener) {
+            super(v, cardClickListener);
             mData = (TextView) v.findViewById(R.id.date);
         }
     }
 
-    public static class FooterViewHolder extends RecyclerView.ViewHolder{
+    public static class FooterViewHolder extends RecyclerView.ViewHolder {
 
         public TextView text;
         public ProgressBar pb;
@@ -211,11 +213,11 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
 
-
-    public interface CardClickListener{
+    public interface CardClickListener {
 
         /**
          * 点击item内容
+         *
          * @param position 点击位置
          */
         void onContentClick(int position);
@@ -223,6 +225,7 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         /**
          * 点击overflow
+         *
          * @param position 点击位置
          */
         void onOverflowClick(int position);

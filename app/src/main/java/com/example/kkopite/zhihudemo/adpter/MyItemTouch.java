@@ -8,12 +8,11 @@ import android.support.v7.widget.helper.ItemTouchHelper;
  */
 public class MyItemTouch extends ItemTouchHelper.Callback {
 
-    private final NewsAdapter adapter;
     private OnItemMoveListener listener;
 
 
-    public MyItemTouch(NewsAdapter adapter) {
-        this.adapter = adapter;
+    public MyItemTouch(OnItemMoveListener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -21,7 +20,7 @@ public class MyItemTouch extends ItemTouchHelper.Callback {
         int dragFlag = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
         int swipeFlag = ItemTouchHelper.START;
 
-        return makeMovementFlags(dragFlag,swipeFlag);
+        return makeMovementFlags(dragFlag, swipeFlag);
     }
 
     @Override
@@ -44,14 +43,10 @@ public class MyItemTouch extends ItemTouchHelper.Callback {
         return true;
     }
 
-    public void setListener(OnItemMoveListener listener) {
-        this.listener = listener;
-    }
-
-    public interface OnItemMoveListener{
+    public interface OnItemMoveListener {
         void onItemDismiss(int position);
 
-        void onItemMove(int from,int to);
+        void onItemMove(int from, int to);
     }
 
 
