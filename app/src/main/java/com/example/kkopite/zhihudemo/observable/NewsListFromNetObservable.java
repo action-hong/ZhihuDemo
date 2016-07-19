@@ -20,7 +20,7 @@ import rx.Subscriber;
  */
 public class NewsListFromNetObservable {
 
-
+    private static final String TAG = "NewsListFromNetObservable";
 
     public static Observable<List<NewsBean>> ofData(String from, String to) {
 
@@ -32,6 +32,13 @@ public class NewsListFromNetObservable {
         return stories.toList();
     }
 
+    public static Observable<List<NewsBean>> ofData(String data) {
+
+        return ofData(data,Utils.getLastDay(data));
+    }
+
+
+
     private static Observable<NewsBean> getStory(String html) {
         return Observable.create(new Observable.OnSubscribe<NewsBean>() {
             @Override
@@ -40,8 +47,11 @@ public class NewsListFromNetObservable {
                     JSONObject object = new JSONObject(html);
                     String date = object.getString("date");
                     JSONArray array = object.getJSONArray("stories");
+
                     for (int i = 0; i < array.length(); i++) {
                         JSONObject newsJson = array.getJSONObject(i);
+                        if(i==0){
+                        }
                         subscriber.onNext(getStoryFromJSON(newsJson, i, date));
                         subscriber.onCompleted();
                     }

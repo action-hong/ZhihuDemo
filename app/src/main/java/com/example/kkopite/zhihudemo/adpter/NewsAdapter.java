@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.example.kkopite.zhihudemo.MyApplication;
 import com.example.kkopite.zhihudemo.R;
 import com.example.kkopite.zhihudemo.db.NewsListDB;
 import com.example.kkopite.zhihudemo.model.NewsBean;
@@ -24,9 +25,9 @@ import java.util.List;
 public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     protected List<NewsBean> storiesBeanList;
-    protected Context mContext;
     protected CardClickListener mCardClickListener;//item监听器
     protected NewsListDB db;
+    private Picasso picasso;
 
     protected static final int WITH_DATA = 0;//有日期的card
     protected static final int NO_DATA = 1;//没有日期的card
@@ -38,16 +39,17 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     protected int loadStatus = 0;
 
-    public NewsAdapter(List<NewsBean> storiesBeanList, Context mContext) {
+    public NewsAdapter(List<NewsBean> storiesBeanList) {
         this.storiesBeanList = storiesBeanList;
-        this.mContext = mContext;
-        db = NewsListDB.getInstance(mContext);
+        this.db = MyApplication.getDB();
+        picasso = MyApplication.getPicasso();
     }
 
     public void onRefreshList(List<NewsBean> list) {
+        //插入的数据是要凡在前面还是放在后面
         int topData = storiesBeanList.size() == 0 ?
                 0 : Integer.parseInt(storiesBeanList.get(0).getDate());
-        int newData = Integer.parseInt(list.get(0).getDate());
+        int newData = list.size() == 0 ? 0 : Integer.parseInt(list.get(0).getDate());
         if (topData >= newData) {
             //插入的新闻应该在尾部
             storiesBeanList.addAll(list);
@@ -126,7 +128,7 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             String url = bean.getImages();
 
-            Picasso.with(mContext).load(url).into(((CardViewHolder) holder).newsImage);
+            picasso.load(url).into(((CardViewHolder) holder).newsImage);
 
             if (db.isFavourite(bean)) {
                 ((CardViewHolder) holder).overflow.setImageResource(R.drawable.ic_favorite_red_24dp1);

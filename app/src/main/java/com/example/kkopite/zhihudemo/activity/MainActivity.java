@@ -1,11 +1,9 @@
 package com.example.kkopite.zhihudemo.activity;
 
 import android.app.DatePickerDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,26 +12,19 @@ import android.widget.Toast;
 import com.example.kkopite.zhihudemo.R;
 import com.example.kkopite.zhihudemo.adpter.NewsAdapter;
 import com.example.kkopite.zhihudemo.db.NewsListDB;
-import com.example.kkopite.zhihudemo.model.NewsBean;
 import com.example.kkopite.zhihudemo.observable.NewsListFromDB;
 import com.example.kkopite.zhihudemo.observable.NewsListFromNetObservable;
 import com.example.kkopite.zhihudemo.utils.Utils;
 import com.google.gson.Gson;
 
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 
-import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener, NewsAdapter.CardClickListener, Observer<List<NewsBean>> {
+public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnRefreshListener{
 
     private SwipeRefreshLayout refreshLayout;
-    private NewsAdapter adapter;
-    private List<NewsBean> newsBeanList = new ArrayList<>();
-    private LinearLayoutManager llm;
     private boolean useLatestLoad = false;//是否需要使用最新消息加载
 
     public static final int EMPTY_LOAD = 1;//数据为空时加载
@@ -42,29 +33,16 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        layoutID = R.layout.activity_main;
 
         super.onCreate(savedInstanceState);
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.news_list);
 
         refreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
         refreshLayout.setOnRefreshListener(this);
         refreshLayout.setColorSchemeResources(android.R.color.holo_blue_light);
 
-        //设置recycleView布局
-        llm = new LinearLayoutManager(this);
-        llm.setOrientation(LinearLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(llm);
 
-
-        //实例适配器,设置item点击事件
-        adapter = new NewsAdapter(newsBeanList, this);
-        adapter.setCardClickListener(this);
-        recyclerView.setAdapter(adapter);
-
-
-        //添加滚动事件
+        //添加滚动事件，可上啦加载更多
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             private int lastItemPosition;
 
@@ -96,7 +74,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
             load(EMPTY_LOAD);
         } else {
             //不要在UI线程做耗时操作,虽然这个数据量也不大
-            loadListFromDB(NewsListFromDB.FROM_ALL,db);
+            loadListFromDB(db);
         }
     }
 
@@ -131,6 +109,7 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
         switch (id) {
             case R.id.clear_db:
+                //清缓存
                 clearCache();
                 break;
             case R.id.action_settings:
@@ -143,7 +122,6 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
                 break;
 
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -206,67 +184,15 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
         refreshLayout.setRefreshing(false);
     }
 
-    /**
-     * 点击item内容
-     *
-     * @param position 点击的位置
-     */
-    @Override
-    public void onContentClick(int position) {
-        NewsBean bean = adapter.getStoriesBeanList().get(position);
-        moreDetail(this, bean);//看更多内容
-    }
-
-    /**
-     * 点击overflow
-     *
-     * @param position 点击的位置
-     */
-    @Override
-    public void onOverflowClick(int position) {
-
-        NewsBean bean = adapter.getStoriesBeanList().get(position);
-        if (db.isFavourite(bean)) {
-            bean.setLoved(false);
-            db.deleteFavourite(bean);
-        } else {
-            bean.setLoved(true);
-            db.saveFavourite(bean);
-        }
-//        adapter.notifyItemChanged(position);//会有闪一下,不好
-        adapter.notifyDataSetChanged();
-    }
-
-    /**
-     * 跳转到详细页面
-     *
-     * @param context 上下文
-     * @param bean    要看具体网页的实例
-     */
-    public void moreDetail(Context context, NewsBean bean) {
-        Intent intent = new Intent(context, WebActivity.class);
-        intent.putExtra(Utils.NEWS_BEAN, bean);
-        startActivity(intent);
-    }
-
 
     @Override
     public void onCompleted() {
-        adapter.onRefreshList(newsBeanList);
-        adapter.setLoadStatus(NewsAdapter.PULL_LOAD_MORE);
-        useLatestLoad = false;
-        refreshLayout.setEnabled(true);
-    }
+        //baseActivity只把获得的数据更新
+        super.onCompleted();
 
-    @Override
-    public void onError(Throwable e) {
-
-    }
-
-    @Override
-    public void onNext(List<NewsBean> newsBeen) {
-
-        this.newsBeanList = newsBeen;
+        adapter.setLoadStatus(NewsAdapter.PULL_LOAD_MORE);//上拉加载更多可以
+        useLatestLoad = false;//此时有数据了,可以使用上拉记载更多
+        refreshLayout.setEnabled(true);//下拉刷新可用
     }
 
     /**
@@ -317,10 +243,9 @@ public class MainActivity extends BaseActivity implements SwipeRefreshLayout.OnR
 
     /**
      * 从数据库加载
-     * @param fromAll
-     * @param db
+     * @param db 数据库
      */
-    private void loadListFromDB(int fromAll, NewsListDB db) {
+    private void loadListFromDB(NewsListDB db) {
         NewsListFromDB.getNewsListFrommDB(NewsListFromDB.FROM_ALL,db)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

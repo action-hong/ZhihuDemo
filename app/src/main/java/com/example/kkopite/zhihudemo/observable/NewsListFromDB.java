@@ -14,7 +14,7 @@ import rx.Subscriber;
 public class NewsListFromDB {
 
     public static final int FROM_ALL = 0;//从总的数据库提取
-    public static final int FROOM_FAV = 1;//从收藏的数据库提取
+    public static final int FROM_FAV = 1;//从收藏的数据库提取
 
 
     /**
@@ -34,7 +34,7 @@ public class NewsListFromDB {
                     case FROM_ALL:
                         list = db.getAllNews();
                         break;
-                    case FROOM_FAV:
+                    case FROM_FAV:
                         list = db.loadFavourite();
                         break;
                 }
@@ -44,7 +44,15 @@ public class NewsListFromDB {
                 subscriber.onCompleted();
             }
         });
+    }
 
-
+    public static Observable<List<NewsBean>> getOneDayListFromAll(String date,NewsListDB db){
+        return Observable.create(new Observable.OnSubscribe<List<NewsBean>>() {
+            @Override
+            public void call(Subscriber<? super List<NewsBean>> subscriber) {
+                subscriber.onNext(db.getOneDayList(date));
+                subscriber.onCompleted();
+            }
+        });
     }
 }
