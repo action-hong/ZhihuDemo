@@ -38,19 +38,11 @@ public class FavoriteActivity extends BaseActivity {
 
     private void bindView() {
 
-        MyItemTouch callback = new MyItemTouch(new MyItemTouch.OnItemMoveListener() {
-            @Override
-            public void onItemDismiss(int position) {
-                //删除事件
-                db.deleteFavourite(mList.get(position));
-                mList.remove(position);
-                adapter.notifyItemRemoved(position);
-            }
-
-            @Override
-            public void onItemMove(int from, int to) {
-
-            }
+        MyItemTouch callback = new MyItemTouch(position -> {
+            //删除事件
+            db.deleteFavourite(mList.get(position));
+            mList.remove(position);
+            adapter.notifyItemRemoved(position);
         });
 
         ItemTouchHelper helper = new ItemTouchHelper(callback);

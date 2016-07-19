@@ -116,43 +116,14 @@ public class BaseActivity extends AppCompatActivity implements NewsAdapter.CardC
         this.mList = newsBeen;
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Logger.d("start");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Logger.d("onResume");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Logger.d("onPause");
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        Logger.d("restart");
-    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Logger.d("onDestroy");
         db = null;
         adapter =null;
         llm = null;
         recyclerView = null;
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Logger.d("stop");
-    }
 }

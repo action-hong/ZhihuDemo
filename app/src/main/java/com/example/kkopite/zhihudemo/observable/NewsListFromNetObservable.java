@@ -20,7 +20,6 @@ import rx.Subscriber;
  */
 public class NewsListFromNetObservable {
 
-    private static final String TAG = "NewsListFromNetObservable";
 
     public static Observable<List<NewsBean>> ofData(String from, String to) {
 
@@ -50,8 +49,6 @@ public class NewsListFromNetObservable {
 
                     for (int i = 0; i < array.length(); i++) {
                         JSONObject newsJson = array.getJSONObject(i);
-                        if(i==0){
-                        }
                         subscriber.onNext(getStoryFromJSON(newsJson, i, date));
                         subscriber.onCompleted();
                     }

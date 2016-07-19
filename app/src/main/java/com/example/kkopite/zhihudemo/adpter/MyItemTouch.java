@@ -46,7 +46,6 @@ public class MyItemTouch extends ItemTouchHelper.Callback {
     public interface OnItemMoveListener {
         void onItemDismiss(int position);
 
-        void onItemMove(int from, int to);
     }
 
 
